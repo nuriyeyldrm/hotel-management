@@ -1,0 +1,21 @@
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+
+spring:
+  datasource:
+    password: password
+    url: jdbc:postgresql://localhost:5432/hotelmanagement
+    username: techprodb_user
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+
