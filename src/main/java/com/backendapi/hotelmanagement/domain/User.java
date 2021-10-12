@@ -44,7 +44,7 @@ public class User implements UserDetails {
     @Column(name = "password_hash", nullable = false, length = 60)
     private String password;
 
-    @Email
+    @Email(message = "Please enter valid email")
     @NotNull(message = "Please enter your email")
     @Size(min = 5, max = 254)
     @Column(nullable = false, unique = true, length = 254)

@@ -78,7 +78,7 @@ public class UserController {
     @DeleteMapping("/auth")
     public ResponseEntity<Map<String, Boolean>> deleteUser(HttpServletRequest request){
         Long id = (Long) request.getAttribute("id");
-        userService.removeUser(id);
+        userService.removeById(id);
         Map<String, Boolean> map = new HashMap<>();
         map.put("success", true);
         return new ResponseEntity<>(map, HttpStatus.OK);

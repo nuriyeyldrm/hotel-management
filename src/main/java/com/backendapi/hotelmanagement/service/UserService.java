@@ -2,6 +2,10 @@ package com.backendapi.hotelmanagement.service;
 
 import com.backendapi.hotelmanagement.domain.User;
 import com.backendapi.hotelmanagement.domain.enumeration.UserRole;
+import com.backendapi.hotelmanagement.exception.AuthException;
+import com.backendapi.hotelmanagement.exception.BadRequestException;
+import com.backendapi.hotelmanagement.exception.ConflictException;
+import com.backendapi.hotelmanagement.exception.ResourceNotFoundException;
 import com.backendapi.hotelmanagement.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,16 +36,30 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public Optional<User> findById(Long id) throws ResourceNotFoundException {
+        try {
+            return userRepository.findById(id);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("user does not exist");
+        }
     }
 
-    public void register(User user) {
+    public void register(User user) throws BadRequestException {
 
         boolean userExists = userRepository.findByUsername(user.getUsername()).isPresent();
+        boolean emailExists = userRepository.findByEmail(user.getEmail()).isPresent();
+        boolean ssnExists = userRepository.findBySsn(user.getSsn()).isPresent();
 
         if (userExists){
-            throw new IllegalStateException("user name already taken");
+            throw new ConflictException("user name already taken");
+        }
+
+        if (emailExists){
+            throw new ConflictException("email already taken");
+        }
+
+        if (ssnExists){
+            throw new ConflictException("SSN already taken");
         }
 
         String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
@@ -52,32 +70,49 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public Optional<User> login(String username, String password){
-        Optional<User> user = userRepository.findByUsername(username);
-        if (!BCrypt.checkpw(password, user.get().getPassword()))
-            throw new RuntimeException("invalid credentials");
-        return user;
+    public Optional<User> login(String username, String password) throws AuthException {
+        try {
+            Optional<User> user = userRepository.findByUsername(username);
+
+            if (!BCrypt.checkpw(password, user.get().getPassword()))
+                throw new AuthException("invalid credentials");
+            return user;
+        } catch (Exception e) {
+            throw new AuthException("invalid credentials");
+        }
     }
 
-    public void updateUser(Long id, User user) {
+    public void updateUser(Long id, User user) throws BadRequestException {
+        boolean emailExists = userRepository.findByEmail(user.getEmail()).isPresent();
+        boolean ssnExists = userRepository.findBySsn(user.getSsn()).isPresent();
+        Optional<User> userDetails = userRepository.findById(id);
+
+        if (emailExists && !user.getEmail().equals(userDetails.get().getEmail())){
+            throw new ConflictException("email already taken");
+        }
+
+        if (ssnExists && !user.getSsn().equals(userDetails.get().getSsn())){
+            throw new ConflictException("SSN already taken");
+        }
+
         userRepository.update(id, user.getEmail(), user.getFullName(), user.getPhoneNumber(), user.getSsn(),
                 user.getDrivingLicense(), user.getCountry(), user.getState(), user.getAddress(),
                 user.getWorkingSector(), user.getBirthDate());
     }
 
-    public void updatePassword(Long id, String newPassword, String oldPassword){
+    public void updatePassword(Long id, String newPassword, String oldPassword) throws BadRequestException {
         Optional<User> user = userRepository.findById(id);
         if (!(BCrypt.hashpw(oldPassword, user.get().getPassword()).equals(user.get().getPassword())))
-            throw new RuntimeException("password does not match");
+            throw new BadRequestException("password does not match");
         String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(10));
         userRepository.updatePassword(id, hashedPassword);
     }
 
-    public void removeUser(Long id){
+    public void removeById(Long id) throws ResourceNotFoundException {
         boolean userExists = userRepository.findById(id).isPresent();
 
         if (!userExists){
-            throw new IllegalStateException(" id does not exist");
+            throw new ResourceNotFoundException("user not exist");
         }
         userRepository.deleteById(id);
     }

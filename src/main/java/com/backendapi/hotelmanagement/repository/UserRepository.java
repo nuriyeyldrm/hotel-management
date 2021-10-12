@@ -1,6 +1,8 @@
 package com.backendapi.hotelmanagement.repository;
 
 import com.backendapi.hotelmanagement.domain.User;
+import com.backendapi.hotelmanagement.exception.BadRequestException;
+import com.backendapi.hotelmanagement.exception.ResourceNotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +16,11 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByUsername(String userName);
+    Optional<User> findByUsername(String userName) throws ResourceNotFoundException;
+
+    Optional<User> findByEmail(String email) throws ResourceNotFoundException;
+
+    Optional<User> findBySsn(String ssn) throws ResourceNotFoundException;
 
     @Transactional
     @Modifying
@@ -22,13 +28,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "SET u.email = ?2, u.fullName = ?3, u.phoneNumber = ?4, u.ssn = ?5, u.drivingLicense = ?6, " +
             "u.country = ?7, u.state = ?8, u.address = ?9, u.workingSector = ?10, u.birthDate = ?11 WHERE u.id =?1")
     void update(Long id, String email, String fullName, String phoneNumber, String ssn, String drivingLicense,
-                String country, String state, String address, String workingSector, Date birthDate);
+                String country, String state, String address, String workingSector, Date birthDate)
+            throws BadRequestException;
 
     @Transactional
     @Modifying
     @Query("UPDATE User u " +
             "SET u.password = ?2 WHERE u.id =?1")
-    void updatePassword(Long id, String password);
+    void updatePassword(Long id, String password) throws BadRequestException;
 
     @Transactional
     @Modifying
