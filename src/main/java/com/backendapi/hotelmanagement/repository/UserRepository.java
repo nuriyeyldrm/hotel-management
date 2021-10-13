@@ -34,12 +34,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Modifying
     @Query("UPDATE User u " +
-            "SET u.password = ?2 WHERE u.id =?1")
-    void updatePassword(Long id, String password) throws BadRequestException;
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE User u " +
             "SET u.enabled = TRUE WHERE u.email =?1")
     int enableAppUser(String email);
 }

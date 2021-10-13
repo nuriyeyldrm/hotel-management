@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.validator.constraints.Range;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,10 +15,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 @Setter
 @Getter
@@ -82,6 +78,7 @@ public class User implements UserDetails {
     @NotNull(message = "Please enter your working sector")
     private String workingSector;
 
+    @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="MM/dd/yyyy")
     @NotNull(message = "Please enter your birth date")
     private Date birthDate;
@@ -93,10 +90,9 @@ public class User implements UserDetails {
 
     private Boolean enabled = true;
 
-    public User(String password, String email, String fullName, String phoneNumber, String ssn,
+    public User(String email, String fullName, String phoneNumber, String ssn,
                 String drivingLicense, String country, String state, String address,
                 String workingSector, Date birthDate) {
-        this.password = password;
         this.email = email;
         this.fullName = fullName;
         this.phoneNumber = phoneNumber;
@@ -128,8 +124,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(userRole.name());
-        return Collections.singletonList(authority);
+        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
+        grantedAuthorityList.add(new SimpleGrantedAuthority(userRole.name()));
+        return grantedAuthorityList;
     }
 
 

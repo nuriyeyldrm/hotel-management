@@ -65,7 +65,7 @@ public class UserService implements UserDetailsService {
         String encodedPassword = bCryptPasswordEncoder.encode(user.getPassword());
 
         user.setPassword(encodedPassword);
-        user.setUserRole(UserRole.USER);
+        user.setUserRole(UserRole.Customer);
 
         userRepository.save(user);
     }
@@ -105,7 +105,8 @@ public class UserService implements UserDetailsService {
         if (!(BCrypt.hashpw(oldPassword, user.get().getPassword()).equals(user.get().getPassword())))
             throw new BadRequestException("password does not match");
         String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(10));
-        userRepository.updatePassword(id, hashedPassword);
+        user.get().setPassword(hashedPassword);
+        userRepository.save(user.get());
     }
 
     public void removeById(Long id) throws ResourceNotFoundException {
