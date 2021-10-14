@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class AuthFilter extends GenericFilterBean {
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
@@ -32,17 +33,17 @@ public class AuthFilter extends GenericFilterBean {
                             .parseClaimsJws(token).getBody();
                     httpRequest.setAttribute("id", Long.parseLong(claims.get("id").toString()));
                 }catch (Exception e){
-                    httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "invalid_or_expired_token");
+                    httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "invalid or expired token");
                     return;
                 }
             }
             else {
-                httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "authorization_token_must_be_Bearer_[token]");
+                httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "authorization token must be Bearer [token]");
                 return;
             }
         }
         else {
-            httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "authorization_token_must_be_provided");
+            httpResponse.sendError(HttpStatus.FORBIDDEN.value(), "authorization token must be provided");
             return;
         }
         filterChain.doFilter(servletRequest, servletResponse);
