@@ -22,26 +22,24 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserService implements UserDetailsService {
 
-    private final static String USER_NOT_FOUND_MSG = "user with user name %s not found";
+    private final static String USERNAME_NOT_FOUND_MSG = "user with user name %s not found";
+    private final static String USER_NOT_FOUND_MSG = "user with id %d not found";
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         return userRepository.findByUsername(userName)
-                .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, userName)));
+                .orElseThrow(() -> new UsernameNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, userName)));
     }
 
     public List<User> fetchAllUsers(){
         return userRepository.findAll();
     }
 
-    public Optional<User> findById(Long id) throws ResourceNotFoundException {
-        try {
-            return userRepository.findById(id);
-        } catch (Exception e) {
-            throw new ResourceNotFoundException("user does not exist");
-        }
+    public User findById(Long id) throws ResourceNotFoundException {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(USER_NOT_FOUND_MSG, id)));
     }
 
     public void register(User user) throws BadRequestException {
@@ -83,6 +81,7 @@ public class UserService implements UserDetailsService {
     }
 
     public void updateUser(Long id, User user) throws BadRequestException {
+
         boolean emailExists = userRepository.findByEmail(user.getEmail()).isPresent();
         boolean ssnExists = userRepository.findBySsn(user.getSsn()).isPresent();
         Optional<User> userDetails = userRepository.findById(id);

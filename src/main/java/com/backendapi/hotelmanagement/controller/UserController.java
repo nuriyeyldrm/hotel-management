@@ -31,9 +31,9 @@ public class UserController {
     }
 
     @GetMapping("/auth")
-    public ResponseEntity<Optional<User>> getUserById(HttpServletRequest request){
+    public ResponseEntity<User> getUserById(HttpServletRequest request){
         Long id = (Long) request.getAttribute("id");
-        Optional<User> user = userService.findById(id);
+        User user = userService.findById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
