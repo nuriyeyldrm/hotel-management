@@ -1,49 +1,42 @@
 package com.backendapi.hotelmanagement.domain;
 
-import com.backendapi.hotelmanagement.domain.enumeration.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-import java.util.*;
+import javax.validation.constraints.*;
 
 @Setter
 @Getter
-@ToString
 @NoArgsConstructor
-@Table(name = "users")
 @Entity
-public class User implements UserDetails {
+@Table(name = "users")
+public class User {
 
     @Id
-    @SequenceGenerator(name = "user_sequence", sequenceName = "user_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Size(max = 50)
+    @Size(min = 3, max = 20, message = "Please enter min 3 characters")
     @NotNull(message = "Please enter your user name")
-    @Column(nullable = false, unique = true, updatable = false, length = 50)
+    @Column(nullable = false, unique = true, updatable = false, length = 20)
     private String username;
 
-    @NotNull(message = "Please enter your password")
     @Size(min = 4, max = 60, message = "Please enter min 4 characters")
-    @Column(name = "password_hash", nullable = false, length = 60)
+    @NotNull(message = "Please enter your password")
+    @Column(nullable = false, length = 120)
     private String password;
 
     @Email(message = "Please enter valid email")
+    @Size(min = 5, max = 150)
     @NotNull(message = "Please enter your email")
-    @Size(min = 5, max = 254)
-    @Column(nullable = false, unique = true, length = 254)
+    @Column(nullable = false, unique = true, length = 150)
     private String email;
 
     @Size(max = 50)
@@ -65,34 +58,39 @@ public class User implements UserDetails {
     private String ssn;
 
     @NotNull(message = "Please enter your driving license")
+    @Column(nullable = false)
     private String drivingLicense;
 
     @NotNull(message = "Please enter your country")
+    @Column(nullable = false)
     private String country;
 
     private String state;
 
     @NotNull(message = "Please enter your address")
+    @Column(nullable = false)
     private String address;
 
     @NotNull(message = "Please enter your working sector")
+    @Column(nullable = false)
     private String workingSector;
 
     @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="MM/dd/yyyy")
     @NotNull(message = "Please enter your birth date")
+    @Column(nullable = false)
     private Date birthDate;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole userRole;
-
-    private Boolean locked = false;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(	name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     private Boolean enabled = true;
 
-    public User(String email, String fullName, String phoneNumber, String ssn,
-                String drivingLicense, String country, String state, String address,
-                String workingSector, Date birthDate) {
+    public User(String email, String fullName, String phoneNumber, String ssn, String drivingLicense, String country,
+                String state, String address, String workingSector, Date birthDate) {
         this.email = email;
         this.fullName = fullName;
         this.phoneNumber = phoneNumber;
@@ -120,72 +118,5 @@ public class User implements UserDetails {
         this.address = address;
         this.workingSector = workingSector;
         this.birthDate = birthDate;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
-        grantedAuthorityList.add(new SimpleGrantedAuthority(userRole.name()));
-        return grantedAuthorityList;
-    }
-
-
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return !locked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id) &&
-                Objects.equals(username, user.username) &&
-                Objects.equals(password, user.password) &&
-                Objects.equals(email, user.email) &&
-                Objects.equals(fullName, user.fullName) &&
-                Objects.equals(phoneNumber, user.phoneNumber) &&
-                Objects.equals(ssn, user.ssn) &&
-                Objects.equals(drivingLicense, user.drivingLicense) &&
-                Objects.equals(country, user.country) &&
-                Objects.equals(state, user.state) &&
-                Objects.equals(address, user.address) &&
-                Objects.equals(birthDate, user.birthDate) &&
-                userRole == user.userRole &&
-                Objects.equals(locked, user.locked) &&
-                Objects.equals(enabled, user.enabled);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, username, password, email, fullName, phoneNumber, ssn, drivingLicense, country,
-                state, address, birthDate, userRole, locked, enabled);
     }
 }

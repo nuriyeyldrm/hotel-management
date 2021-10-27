@@ -11,11 +11,14 @@ spring:
     username: techprodb_user
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
 
-
+backendapi:
+  app:
+    jwtSecret: hotelManagementSecretKey
+    jwtExpirationMs: 86400000
