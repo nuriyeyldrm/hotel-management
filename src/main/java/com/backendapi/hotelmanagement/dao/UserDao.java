@@ -69,4 +69,6 @@ public class UserDao {
     private Date birthDate;
 
     private Set<String> role;
+
+
 }

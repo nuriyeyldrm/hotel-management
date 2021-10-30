@@ -95,7 +95,7 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @PutMapping("/user/auth")
+    @PutMapping("/admin/auth")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> updateUserAuth(HttpServletRequest request,
                                                            @Valid @RequestBody AdminDao adminDao) {
