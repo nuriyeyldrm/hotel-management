@@ -5,6 +5,7 @@ import com.backendapi.hotelmanagement.service.RoomService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -35,6 +36,7 @@ public class RoomController {
     }
 
     @PostMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> createRoom(@Valid @RequestBody Room room) {
         roomService.createRoom(room);
         Map<String, Boolean> map = new HashMap<>();
@@ -43,6 +45,7 @@ public class RoomController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> updateRoom(@PathVariable Long id,
                                                             @Valid @RequestBody Room room) {
         room.setId(id);
@@ -53,6 +56,7 @@ public class RoomController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> deleteRoom(@PathVariable Long id) {
         roomService.deleteRoom(id);
         Map<String, Boolean> map = new HashMap<>();

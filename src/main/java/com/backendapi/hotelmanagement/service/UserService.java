@@ -1,5 +1,7 @@
 package com.backendapi.hotelmanagement.service;
 
+import com.backendapi.hotelmanagement.dao.AdminDao;
+import com.backendapi.hotelmanagement.dao.UserDao;
 import com.backendapi.hotelmanagement.domain.Role;
 import com.backendapi.hotelmanagement.domain.User;
 import com.backendapi.hotelmanagement.domain.enumeration.UserRole;
@@ -35,9 +37,77 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User findByUsername(String username) throws ResourceNotFoundException {
-        return userRepository.findByUsername(username)
+    public AdminDao findByUsername(String username) throws ResourceNotFoundException {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, username)));
+
+        return new AdminDao(user.getUsername(), user.getEmail(), user.getFullName(), user.getPhoneNumber(),
+                user.getSsn(), user.getDrivingLicense(), user.getCountry(), user.getState(), user.getAddress(),
+                user.getWorkingSector(), user.getBirthDate(), user.getEnabled());
+    }
+
+    public void add(AdminDao adminDao) throws BadRequestException {
+        if (userRepository.existsByUsername(adminDao.getUsername())) {
+            throw new ConflictException("Error: Username is already taken!");
+        }
+
+        if (userRepository.existsByEmail(adminDao.getEmail())) {
+            throw new ConflictException("Error: Email is already in use!");
+        }
+
+        if (userRepository.existsBySsn(adminDao.getSsn())) {
+            throw new ConflictException("Error: SSN is already in use!");
+        }
+
+        String encodedPassword = passwordEncoder.encode(adminDao.getPassword());
+
+        if (adminDao.getEnabled() == null)
+            adminDao.setEnabled(false);
+
+        User user = new User(adminDao.getUsername(), encodedPassword, adminDao.getEmail(), adminDao.getFullName(),
+                adminDao.getPhoneNumber(), adminDao.getSsn(), adminDao.getDrivingLicense(), adminDao.getCountry(),
+                adminDao.getState(), adminDao.getAddress(), adminDao.getWorkingSector(), adminDao.getBirthDate(),
+                adminDao.getEnabled());
+
+        Set<String> userRoles = adminDao.getRole();
+        Set<Role> roles = new HashSet<>();
+
+        if (userRoles == null) {
+            Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            userRoles.forEach(role -> {
+                switch (role) {
+                    case "Administrator":
+                        Role adminRole = roleRepository.findByName(UserRole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+
+                        break;
+                    case "CustomerService":
+                        Role customerServiceRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER_SERVICE)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(customerServiceRole);
+
+                        break;
+
+                    case "Manager":
+                        Role managerRole = roleRepository.findByName(UserRole.ROLE_MANAGER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(managerRole);
+
+                        break;
+                    default:
+                        Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(userRole);
+                }
+            });
+        }
+
+        user.setRoles(roles);
+        userRepository.save(user);
     }
 
     public void register(User user) throws BadRequestException {
@@ -77,23 +147,42 @@ public class UserService {
         }
     }
 
-    public void updateUser(String username, User user) throws BadRequestException {
+    public void updateUser(String username, UserDao userDao) throws BadRequestException {
 
-        boolean emailExists = userRepository.existsByEmail(user.getEmail());
-        boolean ssnExists = userRepository.existsBySsn(user.getSsn());
+        boolean emailExists = userRepository.existsByEmail(userDao.getEmail());
+        boolean ssnExists = userRepository.existsBySsn(userDao.getSsn());
         Optional<User> userDetails = userRepository.findByUsername(username);
 
-        if (emailExists && !user.getEmail().equals(userDetails.get().getEmail())){
+        if (emailExists && !userDao.getEmail().equals(userDetails.get().getEmail())){
             throw new ConflictException("Error: Email is already in use!");
         }
 
-        if (ssnExists && !user.getSsn().equals(userDetails.get().getSsn())){
+        if (ssnExists && !userDao.getSsn().equals(userDetails.get().getSsn())){
             throw new ConflictException("Error: SSN is already in use!");
         }
 
-        userRepository.update(username, user.getEmail(), user.getFullName(), user.getPhoneNumber(), user.getSsn(),
-                user.getDrivingLicense(), user.getCountry(), user.getState(), user.getAddress(),
-                user.getWorkingSector(), user.getBirthDate());
+        userRepository.update(username, userDao.getEmail(), userDao.getFullName(), userDao.getPhoneNumber(),
+                userDao.getSsn(), userDao.getDrivingLicense(), userDao.getCountry(), userDao.getState(),
+                userDao.getAddress(), userDao.getWorkingSector(), userDao.getBirthDate());
+    }
+
+    public void updateUserAuth(String username, AdminDao adminDao) throws BadRequestException {
+
+        boolean emailExists = userRepository.existsByEmail(adminDao.getEmail());
+        boolean ssnExists = userRepository.existsBySsn(adminDao.getSsn());
+        Optional<User> userDetails = userRepository.findByUsername(username);
+
+        if (emailExists && !adminDao.getEmail().equals(userDetails.get().getEmail())){
+            throw new ConflictException("Error: Email is already in use!");
+        }
+
+        if (ssnExists && !adminDao.getSsn().equals(userDetails.get().getSsn())){
+            throw new ConflictException("Error: SSN is already in use!");
+        }
+
+        userRepository.update(username, adminDao.getEmail(), adminDao.getFullName(), adminDao.getPhoneNumber(),
+                adminDao.getSsn(), adminDao.getDrivingLicense(), adminDao.getCountry(), adminDao.getState(),
+                adminDao.getAddress(), adminDao.getWorkingSector(), adminDao.getBirthDate());
     }
 
     public void updatePassword(String username, String newPassword, String oldPassword) throws BadRequestException {

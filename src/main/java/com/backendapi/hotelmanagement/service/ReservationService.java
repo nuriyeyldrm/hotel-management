@@ -25,6 +25,10 @@ public class ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format(RESERVATION_NOT_FOUND_MSG, id)));
     }
 
+    public List<Reservation> findAllById(Long id) {
+        return reservationRepository.findAllById(id);
+    }
+
     public void createReservation(Reservation reservation) throws BadRequestException {
         try {
             reservationRepository.save(reservation);

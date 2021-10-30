@@ -5,8 +5,10 @@ import com.backendapi.hotelmanagement.service.ReservationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -23,14 +25,21 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Reservation>> getAllReservations() {
         List<Reservation> reservations = reservationService.fetchAllReservations();
         return new ResponseEntity<>(reservations, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
+    public ResponseEntity<Reservation> getReservationByUsername(@PathVariable Long id) {
         Reservation reservation = reservationService.findById(id);
+        return new ResponseEntity<>(reservation, HttpStatus.OK);
+    }
+
+    @GetMapping("/all{id}")
+    public ResponseEntity<List<Reservation>> getAllReservationById(@PathVariable Long id) {
+        List<Reservation> reservation = reservationService.findAllById(id);
         return new ResponseEntity<>(reservation, HttpStatus.OK);
     }
 

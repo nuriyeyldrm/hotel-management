@@ -1,5 +1,7 @@
 package com.backendapi.hotelmanagement.controller;
 
+import com.backendapi.hotelmanagement.dao.AdminDao;
+import com.backendapi.hotelmanagement.dao.UserDao;
 import com.backendapi.hotelmanagement.domain.User;
 import com.backendapi.hotelmanagement.security.jwt.JwtUtils;
 import com.backendapi.hotelmanagement.service.UserService;
@@ -23,7 +25,7 @@ import java.util.*;
 @AllArgsConstructor
 @RestController
 @Produces(MediaType.APPLICATION_JSON)
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 public class UserController {
 
     public UserService userService;
@@ -32,21 +34,31 @@ public class UserController {
 
     public JwtUtils jwtUtils;
 
-    @GetMapping("/auth/all")
+    @GetMapping("/admin/auth/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers(){
         List<User> users = userService.fetchAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @GetMapping("/auth")
-    public ResponseEntity<User> getUserByUsername(HttpServletRequest request){
+    @GetMapping("/user/auth")
+    public ResponseEntity<AdminDao> getUserByUsername(HttpServletRequest request){
         String username = (String) request.getAttribute("username");
-        User user = userService.findByUsername(username);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        AdminDao adminDao = userService.findByUsername(username);
+        return new ResponseEntity<>(adminDao, HttpStatus.OK);
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/admin/auth/add")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> addUser(@Valid @RequestBody AdminDao adminDao) {
+        userService.add(adminDao);
+
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("User registered successfully!", true);
+        return new ResponseEntity<>(map, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/user/signup")
     public ResponseEntity<Map<String, Boolean>> registerUser(@Valid @RequestBody User user) {
         userService.register(user);
 
@@ -55,7 +67,7 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/user/login")
     public ResponseEntity<Map<String, String>> authenticateUser(@RequestBody Map<String, Object> userMap){
         String username = (String) userMap.get("username");
         String password = (String) userMap.get("password");
@@ -73,17 +85,28 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @PutMapping("/auth")
+    @PutMapping("/user/auth")
     public ResponseEntity<Map<String, Boolean>> updateUser(HttpServletRequest request,
-                                                           @Valid @RequestBody User user) {
+                                                           @Valid @RequestBody UserDao userDao) {
         String username = (String) request.getAttribute("username");
-        userService.updateUser(username, user);
+        userService.updateUser(username, userDao);
         Map<String, Boolean> map = new HashMap<>();
         map.put("success", true);
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @PatchMapping("/auth")
+    @PutMapping("/user/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Boolean>> updateUserAuth(HttpServletRequest request,
+                                                           @Valid @RequestBody AdminDao adminDao) {
+        String username = (String) request.getAttribute("username");
+        userService.updateUserAuth(username, adminDao);
+        Map<String, Boolean> map = new HashMap<>();
+        map.put("success", true);
+        return new ResponseEntity<>(map, HttpStatus.OK);
+    }
+
+    @PatchMapping("/user/auth")
     public ResponseEntity<Map<String, Boolean>> updatePassword(HttpServletRequest request,
                                                                @RequestBody Map<String, Object> userMap) {
         String username = (String) request.getAttribute("username");
@@ -95,7 +118,8 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @DeleteMapping("/auth")
+    @DeleteMapping("/admin/auth")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Boolean>> deleteUser(HttpServletRequest request){
         String username = (String) request.getAttribute("username");
         userService.removeByUsername(username);

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -22,19 +23,21 @@ import java.io.Serializable;
 public class Hotel implements Serializable {
 
     @Id
-    @SequenceGenerator(name = "user_sequence", sequenceName = "user_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Size(max = 15, message = "Size is exceeded")
     @NotNull(message = "Please enter hotel code")
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, unique = true, length = 15)
     private String code;
 
     @Size(max = 50, message = "Size is exceeded")
     @NotNull(message = "Please enter hotel name")
     @Column(nullable = false, length = 50)
     private String name;
+
+    @Column(nullable = false)
+    private int stars;
 
     @Size(max = 250, message = "Size is exceeded")
     @NotNull(message = "Please enter hotel address")
