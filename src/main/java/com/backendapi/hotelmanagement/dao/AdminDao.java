@@ -71,23 +71,4 @@ public class AdminDao {
     private Set<String> role;
 
     private Boolean enabled;
-
-    public AdminDao(String username, String email, String fullName, String phoneNumber, String ssn,
-                    String drivingLicense, String country, String state, String address, String workingSector,
-                    Date birthDate, Boolean enabled) {
-        this.username = username;
-        this.email = email;
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.ssn = ssn;
-        this.drivingLicense = drivingLicense;
-        this.country = country;
-        this.state = state;
-        this.address = address;
-        this.workingSector = workingSector;
-        this.birthDate = birthDate;
-        this.enabled = enabled;
-    }
-
-
 }

@@ -41,11 +41,18 @@ public class UserController {
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
+    @GetMapping("/admin/{id}/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> getUserById(@PathVariable Long id){
+        User user = userService.findById(id);
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
     @GetMapping("/user/auth")
-    public ResponseEntity<AdminDao> getUserByUsername(HttpServletRequest request){
+    public ResponseEntity<UserDao> getUserByUsername(HttpServletRequest request){
         String username = (String) request.getAttribute("username");
-        AdminDao adminDao = userService.findByUsername(username);
-        return new ResponseEntity<>(adminDao, HttpStatus.OK);
+        UserDao userDao = userService.findByUsername(username);
+        return new ResponseEntity<>(userDao, HttpStatus.OK);
     }
 
     @PostMapping("/admin/auth/add")
@@ -95,12 +102,11 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @PutMapping("/admin/auth")
+    @PutMapping("/admin/{id}/auth")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Boolean>> updateUserAuth(HttpServletRequest request,
+    public ResponseEntity<Map<String, Boolean>> updateUserAuth(@PathVariable Long id,
                                                            @Valid @RequestBody AdminDao adminDao) {
-        String username = (String) request.getAttribute("username");
-        userService.updateUserAuth(username, adminDao);
+        userService.updateUserAuth(id, adminDao);
         Map<String, Boolean> map = new HashMap<>();
         map.put("success", true);
         return new ResponseEntity<>(map, HttpStatus.OK);
@@ -118,11 +124,10 @@ public class UserController {
         return new ResponseEntity<>(map, HttpStatus.OK);
     }
 
-    @DeleteMapping("/admin/auth")
+    @DeleteMapping("/admin/{id}/auth")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Boolean>> deleteUser(HttpServletRequest request){
-        String username = (String) request.getAttribute("username");
-        userService.removeByUsername(username);
+    public ResponseEntity<Map<String, Boolean>> deleteUser(@PathVariable Long id){
+        userService.removeByUsername(id);
         Map<String, Boolean> map = new HashMap<>();
         map.put("success", true);
         return new ResponseEntity<>(map, HttpStatus.OK);

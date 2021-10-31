@@ -14,7 +14,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Date;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -68,7 +67,18 @@ public class UserDao {
     @NotNull(message = "Please enter your birth date")
     private Date birthDate;
 
-    private Set<String> role;
-
-
+    public UserDao(String username, String email, String fullName, String phoneNumber, String ssn, String drivingLicense,
+                   String country, String state, String address, String workingSector, Date birthDate) {
+        this.username = username;
+        this.email = email;
+        this.fullName = fullName;
+        this.phoneNumber = phoneNumber;
+        this.ssn = ssn;
+        this.drivingLicense = drivingLicense;
+        this.country = country;
+        this.state = state;
+        this.address = address;
+        this.workingSector = workingSector;
+        this.birthDate = birthDate;
+    }
 }

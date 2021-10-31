@@ -37,13 +37,18 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public AdminDao findByUsername(String username) throws ResourceNotFoundException {
+    public UserDao findByUsername(String username) throws ResourceNotFoundException {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, username)));
 
-        return new AdminDao(user.getUsername(), user.getEmail(), user.getFullName(), user.getPhoneNumber(),
+        return new UserDao(user.getUsername(), user.getEmail(), user.getFullName(), user.getPhoneNumber(),
                 user.getSsn(), user.getDrivingLicense(), user.getCountry(), user.getState(), user.getAddress(),
-                user.getWorkingSector(), user.getBirthDate(), user.getEnabled());
+                user.getWorkingSector(), user.getBirthDate());
+    }
+
+    public User findById(Long id) throws ResourceNotFoundException {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, id)));
     }
 
     public void add(AdminDao adminDao) throws BadRequestException {
@@ -70,41 +75,7 @@ public class UserService {
                 adminDao.getEnabled());
 
         Set<String> userRoles = adminDao.getRole();
-        Set<Role> roles = new HashSet<>();
-
-        if (userRoles == null) {
-            Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            userRoles.forEach(role -> {
-                switch (role) {
-                    case "Administrator":
-                        Role adminRole = roleRepository.findByName(UserRole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    case "CustomerService":
-                        Role customerServiceRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER_SERVICE)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(customerServiceRole);
-
-                        break;
-
-                    case "Manager":
-                        Role managerRole = roleRepository.findByName(UserRole.ROLE_MANAGER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(managerRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
+        Set<Role> roles = addRoles(userRoles);
 
         user.setRoles(roles);
         userRepository.save(user);
@@ -166,11 +137,11 @@ public class UserService {
                 userDao.getAddress(), userDao.getWorkingSector(), userDao.getBirthDate());
     }
 
-    public void updateUserAuth(String username, AdminDao adminDao) throws BadRequestException {
+    public void updateUserAuth(Long id, AdminDao adminDao) throws BadRequestException {
 
         boolean emailExists = userRepository.existsByEmail(adminDao.getEmail());
         boolean ssnExists = userRepository.existsBySsn(adminDao.getSsn());
-        Optional<User> userDetails = userRepository.findByUsername(username);
+        Optional<User> userDetails = userRepository.findById(id);
 
         if (emailExists && !adminDao.getEmail().equals(userDetails.get().getEmail())){
             throw new ConflictException("Error: Email is already in use!");
@@ -180,9 +151,15 @@ public class UserService {
             throw new ConflictException("Error: SSN is already in use!");
         }
 
-        userRepository.update(username, adminDao.getEmail(), adminDao.getFullName(), adminDao.getPhoneNumber(),
-                adminDao.getSsn(), adminDao.getDrivingLicense(), adminDao.getCountry(), adminDao.getState(),
-                adminDao.getAddress(), adminDao.getWorkingSector(), adminDao.getBirthDate());
+        Set<String> userRoles = adminDao.getRole();
+        Set<Role> roles = addRoles(userRoles);
+
+        User user = new User(id, adminDao.getUsername(), adminDao.getPassword(), adminDao.getEmail(),
+                adminDao.getFullName(), adminDao.getPhoneNumber(), adminDao.getSsn(), adminDao.getDrivingLicense(),
+                adminDao.getCountry(), adminDao.getState(), adminDao.getAddress(), adminDao.getWorkingSector(),
+                adminDao.getBirthDate(), roles, adminDao.getEnabled());
+
+        userRepository.save(user);
     }
 
     public void updatePassword(String username, String newPassword, String oldPassword) throws BadRequestException {
@@ -195,13 +172,53 @@ public class UserService {
         userRepository.save(user.get());
     }
 
-    public void removeByUsername(String username) throws ResourceNotFoundException {
-        boolean userExists = userRepository.existsByUsername(username);
+    public void removeByUsername(Long id) throws ResourceNotFoundException {
+        boolean userExists = userRepository.existsById(id);
 
         if (!userExists){
             throw new ResourceNotFoundException("user does not exist");
         }
-        Optional<User> user = userRepository.findByUsername(username);
-        userRepository.deleteById(user.get().getId());
+
+        userRepository.deleteById(id);
+    }
+
+    public Set<Role> addRoles(Set<String> userRoles) {
+        Set<Role> roles = new HashSet<>();
+
+        if (userRoles == null) {
+            Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            userRoles.forEach(role -> {
+                switch (role) {
+                    case "Administrator":
+                        Role adminRole = roleRepository.findByName(UserRole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+
+                        break;
+                    case "CustomerService":
+                        Role customerServiceRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER_SERVICE)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(customerServiceRole);
+
+                        break;
+
+                    case "Manager":
+                        Role managerRole = roleRepository.findByName(UserRole.ROLE_MANAGER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(managerRole);
+
+                        break;
+                    default:
+                        Role userRole = roleRepository.findByName(UserRole.ROLE_CUSTOMER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(userRole);
+                }
+            });
+        }
+
+        return roles;
     }
 }

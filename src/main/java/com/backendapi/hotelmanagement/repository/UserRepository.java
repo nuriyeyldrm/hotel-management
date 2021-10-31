@@ -38,6 +38,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Modifying
     @Query("UPDATE User u " +
+            "SET u.email = ?2, u.fullName = ?3, u.phoneNumber = ?4, u.ssn = ?5, u.drivingLicense = ?6, " +
+            "u.country = ?7, u.state = ?8, u.address = ?9, u.workingSector = ?10, u.birthDate = ?11, " +
+            "u.enabled = ?12 WHERE u.id =?1")
+    void updateAuth(Long id, String email, String fullName, String phoneNumber, String ssn, String drivingLicense,
+                String country, String state, String address, String workingSector, Date birthDate, Boolean enabled)
+            throws BadRequestException;
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE User u " +
             "SET u.enabled = TRUE WHERE u.email =?1")
     int enableAppUser(String email);
 }
