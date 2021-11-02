@@ -10,9 +10,10 @@ import com.backendapi.hotelmanagement.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
-import net.kaczmarzyk.spring.data.jpa.domain.In;
 import net.kaczmarzyk.spring.data.jpa.domain.Like;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.JoinFetch;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -66,12 +67,15 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> get(
+            @Join(path = "roles", alias = "r")
             @And({
+                    @Spec(path = "id", params = "id", spec = Equal.class),
                     @Spec(path = "username", params = "username", spec = Like.class),
                     @Spec(path = "email", params = "email", spec = Like.class),
-                    @Spec(path = "fullName", params = "fullName", spec = In.class),
+                    @Spec(path = "fullName", params = "fullName", spec = Like.class),
                     @Spec(path = "birthDate",  params = "birthDate", spec = Equal.class),
-                    @Spec(path = "phoneNumber", params = "phoneNumber", spec = In.class),
+                    @Spec(path = "phoneNumber", params = "phoneNumber", spec = Like.class),
+                    @Spec(path = "r.id", params = "role", spec = Equal.class),
                     @Spec(path = "enabled", params = "enabled", spec = Equal.class)
             }) Specification<User> spec,
             Sort sort,
