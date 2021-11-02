@@ -24,14 +24,17 @@ The Hotel Management API implements a complex domain model flow to book a hotel 
 | GET | /api/user/auth | get user by username |
 | GET | /api/admin/{id}/auth | get user by id (preauthorize admin) |
 | GET | /api/admin/auth/all | get all users (preauthorize admin) |
+| GET | /api/admin/auth/search? | search user info from specified parameters... (preauthorize admin) |
 | POST | /api/admin/auth/add | add user (preauthorize admin) |
 | POST | /api/user/signup | register |
 | POST | /api/user/login | login |
 | PUT | /api/user/auth | update to user |
 | PUT | /api/admin/{id}/auth | update to user (preauthorize admin) |
 | PATCH | /api/user/auth | update to password |
-| DELETE | /api//admin/{id}/auth | delete to user (preauthorize admin) |
+| DELETE | /api/admin/{id}/auth | delete to user (preauthorize admin) |
 #### ... continues
+
+#### Postman collections for user and admin part [https://www.getpostman.com/collections/8e1eb5f0f9126387d0a5]
 
 ### User Resources
 
