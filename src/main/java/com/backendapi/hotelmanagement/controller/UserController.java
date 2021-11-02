@@ -3,9 +3,15 @@ package com.backendapi.hotelmanagement.controller;
 import com.backendapi.hotelmanagement.dao.AdminDao;
 import com.backendapi.hotelmanagement.dao.UserDao;
 import com.backendapi.hotelmanagement.domain.User;
+import com.backendapi.hotelmanagement.repository.UserSearchRepository;
 import com.backendapi.hotelmanagement.security.jwt.JwtUtils;
 import com.backendapi.hotelmanagement.service.UserService;
+import com.sipios.springsearch.anotation.SearchSpec;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +37,8 @@ public class UserController {
 
     public UserService userService;
 
+    public UserSearchRepository userSearchRepository;
+
     public AuthenticationManager authenticationManager;
 
     public JwtUtils jwtUtils;
@@ -46,6 +55,28 @@ public class UserController {
     public ResponseEntity<User> getUserById(@PathVariable Long id){
         User user = userService.findById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @GetMapping("/admin/auth/search")
+    public Page<User> getUserByItem(@RequestParam(value = "id", required = false) Long id,
+                                @RequestParam(value = "username", required = false) String username,
+                                @RequestParam(value = "email", required = false) String email,
+                                @RequestParam(value = "fullName", required = false) String fullName,
+                                @RequestParam(value = "birthDate", required = false)
+                                        @DateTimeFormat(pattern="MM/dd/yyyy") Date birthDate,
+                                @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
+                                @RequestParam(value = "roles", required = false) String roles,
+                                @RequestParam(value = "enabled", required = false) Boolean enabled,
+                                    Pageable pageable) {
+
+        return userService.findByItem(id, username, email, fullName, birthDate, phoneNumber, enabled, pageable);
+
+    }
+
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> searchForCars(@SearchSpec Specification<User> specs) {
+        return new ResponseEntity<>(userSearchRepository.findAll(Specification.where(specs)), HttpStatus.OK);
     }
 
     @GetMapping("/user/auth")

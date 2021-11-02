@@ -17,8 +17,19 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
+  data:
+    web:
+      pageable:
+        default-page-size: 5
+  h2:
+    console:
+      enabled: true
+      path: /h2console
+  thymeleaf:
+    cache: false
 
 backendapi:
   app:
     jwtSecret: hotelManagementSecretKey
     jwtExpirationMs: 86400000
+

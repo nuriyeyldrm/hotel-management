@@ -10,22 +10,24 @@ import com.backendapi.hotelmanagement.exception.BadRequestException;
 import com.backendapi.hotelmanagement.exception.ConflictException;
 import com.backendapi.hotelmanagement.exception.ResourceNotFoundException;
 import com.backendapi.hotelmanagement.repository.RoleRepository;
+import com.backendapi.hotelmanagement.repository.UserPageableRepository;
 import com.backendapi.hotelmanagement.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @AllArgsConstructor
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+
+    private final UserPageableRepository userPageableRepository;
 
     private final RoleRepository roleRepository;
 
@@ -49,6 +51,14 @@ public class UserService {
     public User findById(Long id) throws ResourceNotFoundException {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, id)));
+    }
+
+    public Page<User> findByItem(Long id, String username, String email, String fullName, Date birthDate,
+                                 String phoneNumber, Boolean enabled, Pageable pageable)
+            throws ResourceNotFoundException {
+
+        return userPageableRepository.findAllByLocation(id, username, email, fullName, birthDate,
+                phoneNumber, enabled, pageable);
     }
 
     public void add(AdminDao adminDao) throws BadRequestException {
