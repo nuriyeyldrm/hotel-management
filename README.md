@@ -24,14 +24,20 @@ The Hotel Management API implements a complex domain model flow to book a hotel 
 | GET | /api/user/auth | get user by username |
 | GET | /api/admin/{id}/auth | get user by id (preauthorize admin) |
 | GET | /api/admin/auth/all | get all users (preauthorize admin) |
+| GET | /api/admin/auth/search? | search user info from specified parameters... (preauthorize admin) |
 | POST | /api/admin/auth/add | add user (preauthorize admin) |
 | POST | /api/user/signup | register |
 | POST | /api/user/login | login |
 | PUT | /api/user/auth | update to user |
 | PUT | /api/admin/{id}/auth | update to user (preauthorize admin) |
 | PATCH | /api/user/auth | update to password |
-| DELETE | /api//admin/{id}/auth | delete to user (preauthorize admin) |
+| DELETE | /api/admin/{id}/auth | delete to user (preauthorize admin) |
 #### ... continues
+
+#### Postman collections for user and admin part [https://www.getpostman.com/collections/8e1eb5f0f9126387d0a5]
+
+#### NOTE: All method except signup/login methods, needs Authorization Bearer token in header 
+![image](https://user-images.githubusercontent.com/24353402/139966947-18285470-4f69-4129-beac-d8067a222fea.png)
 
 ### User Resources
 
@@ -192,6 +198,48 @@ GET /api/admin/{id}/auth
     ],
     "enabled": null
 }
+```
+# --------------------------------------------------
+##### Request
+#
+```sh
+GET /api/admin/auth/search?role=3
+```
+##### Params
+#
+![image](https://user-images.githubusercontent.com/24353402/139967179-93e34a91-4568-4e38-ae87-6367c35e08d2.png)
+
+##### Response
+#
+```json
+[
+    {
+        "id": 2,
+        "username": "samuel",
+        "password": "$2a$10$SE9.KsdwmdTUdTtpl6y3ieIT4R5SL7JjjV5uH.z7WEBwXc09/kxDm",
+        "email": "samuel@gmail.com",
+        "fullName": "Samuel M Donahue",
+        "phoneNumber": "(530) 201-1198",
+        "ssn": "618-74-2612",
+        "drivingLicense": "T1822054",
+        "country": "USA",
+        "state": "California",
+        "address": "4112 Kerry Way Santa Fe Springs, CA",
+        "workingSector": "logistic",
+        "birthDate": "09/20/1956",
+        "roles": [
+            {
+                "id": 4,
+                "name": "ROLE_MANAGER"
+            },
+            {
+                "id": 3,
+                "name": "ROLE_CUSTOMER_SERVICE"
+            }
+        ],
+        "enabled": true
+    }
+]
 ```
 # --------------------------------------------------
 ##### Request
