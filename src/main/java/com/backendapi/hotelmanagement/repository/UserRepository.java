@@ -1,22 +1,17 @@
 package com.backendapi.hotelmanagement.repository;
 
-import com.backendapi.hotelmanagement.domain.Role;
 import com.backendapi.hotelmanagement.domain.User;
 import com.backendapi.hotelmanagement.exception.BadRequestException;
 import com.backendapi.hotelmanagement.exception.ConflictException;
 import com.backendapi.hotelmanagement.exception.ResourceNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 @Transactional(readOnly = true)
