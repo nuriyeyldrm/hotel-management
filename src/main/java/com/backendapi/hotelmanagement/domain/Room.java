@@ -68,18 +68,4 @@ public class Room implements Serializable {
     @NotNull(message = "Room is available!")
     @Column(nullable = false)
     private Boolean isAvailable;
-
-    public Room(Hotel idHotel, String code, String name, String location, String description, Double price,
-                String roomType, Integer numOfAdult, Integer numOfChildren, Boolean isAvailable) {
-        this.idHotel = idHotel;
-        this.code = code;
-        this.name = name;
-        this.location = location;
-        this.description = description;
-        this.price = price;
-        this.roomType = roomType;
-        this.numOfAdult = numOfAdult;
-        this.numOfChildren = numOfChildren;
-        this.isAvailable = isAvailable;
-    }
 }

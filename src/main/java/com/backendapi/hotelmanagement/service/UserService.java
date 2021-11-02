@@ -193,6 +193,10 @@ public class UserService {
             throw new ConflictException("Error: SSN is already in use!");
         }
 
+        String encodedPassword = passwordEncoder.encode(adminDao.getPassword());
+
+        adminDao.setPassword(encodedPassword);
+
         Set<String> userRoles = adminDao.getRole();
         Set<Role> roles = addRoles(userRoles);
 

@@ -32,14 +32,6 @@ public class HotelManagementApplication {
 //        return registrationBean;
 //    }
 
-//    @Bean
-//    public FilterRegistrationBean<AuthFilter> filterFilterRegistrationBean(){
-//        FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
-//        AuthFilter authFilter = new AuthFilter();
-//        registrationBean.setFilter(authFilter);
-//        registrationBean.addUrlPatterns("/api/user/auth/*");
-//        return registrationBean;
-//    }
 
 //    @Bean
 //    public RestTemplate getRestTemplate() {
