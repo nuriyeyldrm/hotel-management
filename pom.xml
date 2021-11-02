@@ -71,9 +71,9 @@
             <version>2.0.1</version>
         </dependency>
         <dependency>
-            <groupId>com.sipios</groupId>
-            <artifactId>spring-search</artifactId>
-            <version>0.2.0</version>
+            <groupId>net.kaczmarzyk</groupId>
+            <artifactId>specification-arg-resolver</artifactId>
+            <version>2.6.2</version>
         </dependency>
 
     </dependencies>

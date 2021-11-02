@@ -1,6 +1,7 @@
 package com.backendapi.hotelmanagement.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import javax.validation.constraints.*;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User implements Serializable {
@@ -92,10 +94,6 @@ public class User implements Serializable {
 
     private Boolean enabled;
 
-    @JoinColumn(name="options_id")
-    @OneToOne
-    private Options options;
-
     public User(String username, String password, String email, String fullName, String phoneNumber, String ssn,
                 String drivingLicense, String country, String state, String address,
                 String workingSector, Date birthDate, Boolean enabled) {
@@ -111,26 +109,6 @@ public class User implements Serializable {
         this.address = address;
         this.workingSector = workingSector;
         this.birthDate = birthDate;
-        this.enabled = enabled;
-    }
-
-    public User(Long id, String username, String password, String email, String fullName, String phoneNumber,
-                String ssn, String drivingLicense, String country, String state, String address, String workingSector,
-                Date birthDate, Set<Role> roles, Boolean enabled) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.ssn = ssn;
-        this.drivingLicense = drivingLicense;
-        this.country = country;
-        this.state = state;
-        this.address = address;
-        this.workingSector = workingSector;
-        this.birthDate = birthDate;
-        this.roles = roles;
         this.enabled = enabled;
     }
 }

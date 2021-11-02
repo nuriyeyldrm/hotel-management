@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u " +
             "SET u.email = ?2, u.fullName = ?3, u.phoneNumber = ?4, u.ssn = ?5, u.drivingLicense = ?6, " +
             "u.country = ?7, u.state = ?8, u.address = ?9, u.workingSector = ?10, u.birthDate = ?11 " +
-            "WHERE u.username =?1")
+            "WHERE u.username = ?1")
     void update(String username, String email, String fullName, String phoneNumber, String ssn, String drivingLicense,
                 String country, String state, String address, String workingSector, Date birthDate)
             throws BadRequestException;

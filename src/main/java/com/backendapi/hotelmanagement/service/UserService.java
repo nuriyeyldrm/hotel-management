@@ -2,8 +2,10 @@ package com.backendapi.hotelmanagement.service;
 
 import com.backendapi.hotelmanagement.dao.AdminDao;
 import com.backendapi.hotelmanagement.dao.UserDao;
+import com.backendapi.hotelmanagement.dao.PagingResponse;
 import com.backendapi.hotelmanagement.domain.Role;
 import com.backendapi.hotelmanagement.domain.User;
+import com.backendapi.hotelmanagement.domain.enumeration.PagingHeaders;
 import com.backendapi.hotelmanagement.domain.enumeration.UserRole;
 import com.backendapi.hotelmanagement.exception.AuthException;
 import com.backendapi.hotelmanagement.exception.BadRequestException;
@@ -14,7 +16,11 @@ import com.backendapi.hotelmanagement.repository.UserPageableRepository;
 import com.backendapi.hotelmanagement.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,13 +59,38 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, id)));
     }
 
-    public Page<User> findByItem(Long id, String username, String email, String fullName, Date birthDate,
-                                 String phoneNumber, Boolean enabled, Pageable pageable)
-            throws ResourceNotFoundException {
-
-        return userPageableRepository.findAllByLocation(id, username, email, fullName, birthDate,
-                phoneNumber, enabled, pageable);
+    public PagingResponse get(Specification<User> spec, Pageable pageable) {
+        Page<User> page = userPageableRepository.findAll(spec, pageable);
+        List<User> content = page.getContent();
+        return new PagingResponse(page.getTotalElements(), (long) page.getNumber(),
+                (long) page.getNumberOfElements(), pageable.getOffset(), (long) page.getTotalPages(), content);
     }
+
+    public List<User> get(Specification<User> spec, Sort sort) {
+        return userPageableRepository.findAll(spec, sort);
+    }
+
+    public PagingResponse get(Specification<User> spec, HttpHeaders headers, Sort sort) {
+        if (isRequestPaged(headers)) {
+            return get(spec, buildPageRequest(headers, sort));
+        } else {
+            List<User> entities = get(spec, sort);
+            return new PagingResponse((long) entities.size(), 0L,
+                    0L, 0L, 0L, entities);
+        }
+    }
+
+    private boolean isRequestPaged(HttpHeaders headers) {
+        return headers.containsKey(PagingHeaders.PAGE_NUMBER.getName()) &&
+                headers.containsKey(PagingHeaders.PAGE_SIZE.getName());
+    }
+
+    private Pageable buildPageRequest(HttpHeaders headers, Sort sort) {
+        int page = Integer.parseInt(Objects.requireNonNull(headers.get(PagingHeaders.PAGE_NUMBER.getName())).get(0));
+        int size = Integer.parseInt(Objects.requireNonNull(headers.get(PagingHeaders.PAGE_SIZE.getName())).get(0));
+        return PageRequest.of(page, size, sort);
+    }
+
 
     public void add(AdminDao adminDao) throws BadRequestException {
         if (userRepository.existsByUsername(adminDao.getUsername())) {

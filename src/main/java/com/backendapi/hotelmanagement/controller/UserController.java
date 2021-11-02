@@ -2,16 +2,21 @@ package com.backendapi.hotelmanagement.controller;
 
 import com.backendapi.hotelmanagement.dao.AdminDao;
 import com.backendapi.hotelmanagement.dao.UserDao;
+import com.backendapi.hotelmanagement.dao.PagingResponse;
 import com.backendapi.hotelmanagement.domain.User;
-import com.backendapi.hotelmanagement.repository.UserSearchRepository;
+import com.backendapi.hotelmanagement.domain.enumeration.PagingHeaders;
 import com.backendapi.hotelmanagement.security.jwt.JwtUtils;
 import com.backendapi.hotelmanagement.service.UserService;
-import com.sipios.springsearch.anotation.SearchSpec;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
+import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.domain.In;
+import net.kaczmarzyk.spring.data.jpa.domain.Like;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,11 +27,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @AllArgsConstructor
 @RestController
@@ -35,8 +42,6 @@ import java.util.*;
 public class UserController {
 
     public UserService userService;
-
-    public UserSearchRepository userSearchRepository;
 
     public AuthenticationManager authenticationManager;
 
@@ -56,26 +61,33 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @GetMapping("/admin/auth/search")
-    public Page<User> getUserByItem(@RequestParam(value = "id", required = false) Long id,
-                                @RequestParam(value = "username", required = false) String username,
-                                @RequestParam(value = "email", required = false) String email,
-                                @RequestParam(value = "fullName", required = false) String fullName,
-                                @RequestParam(value = "birthDate", required = false)
-                                        @DateTimeFormat(pattern="MM/dd/yyyy") Date birthDate,
-                                @RequestParam(value = "phoneNumber", required = false) String phoneNumber,
-                                @RequestParam(value = "roles", required = false) String roles,
-                                @RequestParam(value = "enabled", required = false) Boolean enabled,
-                                    Pageable pageable) {
-
-        return userService.findByItem(id, username, email, fullName, birthDate, phoneNumber, enabled, pageable);
-
+    @Transactional
+    @GetMapping(value = "")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> get(
+            @And({
+                    @Spec(path = "username", params = "username", spec = Like.class),
+                    @Spec(path = "email", params = "email", spec = Like.class),
+                    @Spec(path = "fullName", params = "fullName", spec = In.class),
+                    @Spec(path = "birthDate",  params = "birthDate", spec = Equal.class),
+                    @Spec(path = "phoneNumber", params = "phoneNumber", spec = In.class),
+                    @Spec(path = "enabled", params = "enabled", spec = Equal.class)
+            }) Specification<User> spec,
+            Sort sort,
+            @RequestHeader HttpHeaders headers) {
+        final PagingResponse response = userService.get(spec, headers, sort);
+        return new ResponseEntity<>(response.getElements(), returnHttpHeaders(response), HttpStatus.OK);
     }
 
-    @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> searchForCars(@SearchSpec Specification<User> specs) {
-        return new ResponseEntity<>(userSearchRepository.findAll(Specification.where(specs)), HttpStatus.OK);
+    public HttpHeaders returnHttpHeaders(PagingResponse response) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(PagingHeaders.COUNT.getName(), String.valueOf(response.getCount()));
+        headers.set(PagingHeaders.PAGE_SIZE.getName(), String.valueOf(response.getPageSize()));
+        headers.set(PagingHeaders.PAGE_OFFSET.getName(), String.valueOf(response.getPageOffset()));
+        headers.set(PagingHeaders.PAGE_NUMBER.getName(), String.valueOf(response.getPageNumber()));
+        headers.set(PagingHeaders.PAGE_TOTAL.getName(), String.valueOf(response.getPageTotal()));
+        return headers;
     }
 
     @GetMapping("/user/auth")
