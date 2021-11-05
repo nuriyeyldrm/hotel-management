@@ -39,7 +39,9 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final static String USERNAME_NOT_FOUND_MSG = "user with id %s not found";
+    private final static String USERNAME_NOT_FOUND_MSG = "user with username %s not found";
+
+    private final static String USER_NOT_FOUND_MSG = "user with id %d not found";
 
     public List<User> fetchAllUsers(){
         return userRepository.findAll();
@@ -56,7 +58,7 @@ public class UserService {
 
     public User findById(Long id) throws ResourceNotFoundException {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format(USERNAME_NOT_FOUND_MSG, id)));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(USER_NOT_FOUND_MSG, id)));
     }
 
     public PagingResponse get(Specification<User> spec, Pageable pageable) {
